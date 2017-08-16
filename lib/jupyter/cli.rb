@@ -77,12 +77,15 @@ module Jupyter
         write_to_csv(report)
       when "sqs", "SQS"
         send_to_sqs(report)
+      when 'table'
+        print_table(report)
       else
-        print_output(report)
+        require 'pp'
+        PP.pp(report)
       end
     end
 
-    def print_output(report)
+    def print_table(report)
       require 'text-table'
 
       table = Text::Table.new
@@ -153,6 +156,10 @@ module Jupyter
           options[:output] = arg
         end
 
+        opts.on('-l file', '--log file', 'specify log file') do |arg|
+          options[:log_file] = arg
+        end
+
         opts.on('--debug', 'debug mode') do |arg|
           options[:debug] = true
         end
@@ -208,7 +215,10 @@ module Jupyter
     end
 
     def log_file
-      @log_file ||= "log/#{plan_name}-#{@timestamp}.log"
+      @log_file ||= begin
+        file = options.fetch(:log_file, "jupyter.log")
+        "log/#{file}"
+      end
     end
 
     def output_destination
