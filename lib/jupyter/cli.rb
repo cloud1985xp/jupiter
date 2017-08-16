@@ -235,9 +235,11 @@ module Jupyter
         'HealthyHostCount' => { statistics: ["Maximum"], calculations: { count: :maximum } }
       }
 
+      client = Aws::CloudWatch::Client.new(config.aws.credential)
+
       config.aws.cloudwatch.each do |metric_name, namespaces|
         namespaces.each do |namespace, subjects|
-          metric = Aws::CloudWatch::Metric.new("AWS/#{namespace.upcase}", metric_name)
+          metric = Aws::CloudWatch::Metric.new("AWS/#{namespace.upcase}", metric_name, client: client)
           subjects.each do |subject_name, dimensions|
             statistics = cloudwatch_statistics_mapping[metric_name][:statistics]
             calculations = cloudwatch_statistics_mapping[metric_name][:calculations]

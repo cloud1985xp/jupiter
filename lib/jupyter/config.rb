@@ -42,7 +42,8 @@ module Jupyter
     def credential
       {
         access_key_id: @config['access_key_id'],
-        secret_access_key: @config['secret_access_key']
+        secret_access_key: @config['secret_access_key'],
+        region: @config['region']
       }
     end
   end
