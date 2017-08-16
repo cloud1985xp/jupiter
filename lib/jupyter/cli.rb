@@ -54,7 +54,8 @@ module Jupyter
 
       # JMeter Summary
       unless debug?
-        log = `tail -n 1 #{log_file}`
+        logs = `tail -n 10 #{log_file}`.split("\n")
+        log = logs.reserve.detect { |str| str["summary ="] }
         stats = log.scan(/(Avg|Min|Max): +(\d)/).each { |k,v| report[k.downcase] =  v.to_f }
         summary = log.match(/summary = +(\d+) in +(\d+)s = ([\d\.]+)\/s/)
         error = log.match(/(Err): +(\d) \(([\d\.]+)%\)/)
