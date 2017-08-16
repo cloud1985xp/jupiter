@@ -23,6 +23,10 @@ module Jupyter
       @config["cloudwatch"]
     end
 
+    def enabled_cloudwatch?
+      cloudwatch.present?
+    end
+
     def slave_filters
       state_filter = [{ name: 'instance-state-name', values: ['running'] }]
 

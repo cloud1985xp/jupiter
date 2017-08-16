@@ -1,3 +1,5 @@
+require 'optparse'
+
 module Jupyter
   class CLI
     include Singleton
@@ -265,7 +267,7 @@ module Jupyter
     end
 
     def enabled_cloudwatch?
-      @options[:remote] && config.aws['cloudwatch'].present?
+      @options[:remote] && config.aws.enabled_cloudwatch?
     end
 
     def config
