@@ -15,6 +15,10 @@ module Jupyter
       @config = config
     end
 
+    def [](key)
+      @config[key.to_s]
+    end
+
     def load_balancer_name
       @config["load_balancer_name"]
     end
@@ -23,8 +27,16 @@ module Jupyter
       @config["cloudwatch"]
     end
 
+    def sqs
+      @config['sqs']
+    end
+
     def enabled_cloudwatch?
       cloudwatch.present?
+    end
+
+    def enabled_sqs?
+      sqs.present?
     end
 
     def slave_filters

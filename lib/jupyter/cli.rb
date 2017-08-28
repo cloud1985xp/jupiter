@@ -33,6 +33,8 @@ module Jupyter
       @ends_at = Time.zone.now
 
       generate_report!
+    rescue Jupyter::Error => e
+      puts "Cannot Parse Log: #{e.message}"
     rescue => e
       puts e.message
       puts e.backtrace
@@ -44,6 +46,7 @@ module Jupyter
       # TODO: Wrap with Object
       report = {
         'plan': ruby_filename,
+        'revision': `git rev-parse HEAD`,
         'starts_at': @starts_at,
         'ends_at': @ends_at,
         'settings': {
@@ -56,9 +59,20 @@ module Jupyter
       unless debug?
         logs = `tail -n 10 #{log_file}`.split("\n")
         log = logs.reverse.detect { |str| str["summary ="] }
-        stats = log.scan(/(Avg|Min|Max): +(\d)/).each { |k,v| report[k.downcase] =  v.to_f }
-        summary = log.match(/summary = +(\d+) in +([\d\.]+)s = +([\d\.]+)\/s/)
+        stats = log.scan(/(Avg|Min|Max): +([\d\-]+)/).each { |k,v| report[k.downcase] =  v.to_f }
+        summary = log.match(/summary = +(\d+) in +([\d\.]+s|[\d\:]+) = +([\d\.]+)\/s/)
         error = log.match(/(Err): +(\d+) \(([\d\.]+)%\)/)
+
+        raise Jupyter::LogParseError, :summary if summary.nil?
+        raise Jupyter::LogParseError, :stats if stats.nil?
+        raise Jupyter::LogParseError, :error if error.nil?
+
+        seconds = if summary[2][':']
+          t = Time.parse(summary[2])
+          t.to_i - t.beginning_of_day.to_i
+        else
+          summary[2].to_f
+        end
 
         report['summary'] = summary[1].to_f
         report['seconds'] = summary[2].to_f
@@ -114,9 +128,17 @@ module Jupyter
       raise NotImplementedError
     end
 
-    # TODO!
-    def send_to_sqs(_report)
-      raise NotImplementedError
+    def send_to_sqs(report)
+      raise Jupyter::ConfigurationNotFoundError, :sqs unless config.aws.enabled_sqs?
+
+      sqs = ::Aws::SQS::Client.new(config.aws.credential)
+      sqs_config = config.aws.sqs
+      queue_url = sqs.get_queue_url(queue_name: sqs_config['queue_name']).queue_url
+
+      send_message_result = sqs.send_message({
+        queue_url: queue_url,
+        message_body: report.to_json
+      })
     end
 
     def parse!
@@ -173,7 +195,7 @@ module Jupyter
 
     def prepare!
       fetch_remote_server_list! if @options[:remote]
-      generate_jmx_file
+      generate_jmx_file unless debug?
     end
 
     def debug?
