@@ -168,7 +168,7 @@ module Jupyter
           options[:threads] = arg.to_i
         end
 
-        opts.on('--cloudwatch-delay', 'delayed seconds before query cloudwatch') do |arg|
+        opts.on('--cloudwatch-delay value', 'delayed seconds before query cloudwatch') do |arg|
           options[:cloudwatch_delay] = arg.to_i
         end
 
