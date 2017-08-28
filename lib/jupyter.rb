@@ -4,6 +4,7 @@ require 'active_support/core_ext'
 require 'yaml'
 require 'aws-sdk'
 require "jupyter/config"
+require "jupyter/errors"
 require "jupyter/version"
 
 module Jupyter
