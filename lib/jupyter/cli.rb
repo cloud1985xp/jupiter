@@ -114,9 +114,17 @@ module Jupyter
       raise NotImplementedError
     end
 
-    # TODO!
-    def send_to_sqs(_report)
-      raise NotImplementedError
+    def send_to_sqs(report)
+      raise Jupyter::ConfigurationNotFoundError, :sqs unless config.aws.enabled_sqs?
+
+      sqs = ::Aws::SQS::Client.new(config.aws.credential)
+      sqs_config = config.aws.sqs
+      queue_url = sqs.get_queue_url(queue_name: sqs_config['queue_name']).queue_url
+
+      send_message_result = sqs.send_message({
+        queue_url: queue_url,
+        message_body: report.to_json
+      })
     end
 
     def parse!
