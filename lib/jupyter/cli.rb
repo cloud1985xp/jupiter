@@ -139,6 +139,8 @@ module Jupyter
         queue_url: queue_url,
         message_body: report.to_json
       })
+
+      log("Sent Result to SQS(#{queue_url})")
     end
 
     def parse!
