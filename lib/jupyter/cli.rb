@@ -132,10 +132,6 @@ module Jupyter
           options[:file] = arg
         end
 
-        opts.on('--threads count', 'specified thread count. (1)') do |arg|
-          options[:threads] = arg.to_i
-        end
-
         opts.on('-r', '--remote', 'execute on remote servers with given IP list') do |arg|
           options[:remote] = true
         end
@@ -146,6 +142,10 @@ module Jupyter
 
         opts.on('--threads value', 'specify threads count') do |arg|
           options[:threads] = arg.to_i
+        end
+
+        opts.on('--cloudwatch-delay', 'delayed seconds before query cloudwatch') do |arg|
+          options[:cloudwatch_delay] = arg.to_i
         end
 
         opts.on('--loop value', 'specify loop controller') do |arg|
@@ -239,6 +239,12 @@ module Jupyter
       cloudwatch = {}
       st = @starts_at.iso8601
       et = @ends_at.iso8601
+
+      cloudwatch_wait_seconds = options.fetch(:cloudwatch_delay, 0)
+      if cloudwatch_wait_seconds > 0
+        puts "Wait #{cloudwatch_wait_seconds} seconds to collect data from cloudwatch"
+        sleep(cloudwatch_wait_seconds)
+      end
 
       cloudwatch_statistics_mapping = {
         'RequestCount' => { statistics: ["Sum"], calculations: { rpm: :sum } } ,
