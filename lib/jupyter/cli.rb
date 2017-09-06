@@ -33,7 +33,7 @@ module Jupyter
       @ends_at = Time.zone.now
 
       generate_report!
-    rescue Jupyter::Error => e
+    rescue Jupyter::LogParseError => e
       puts "Cannot Parse Log: #{e.message}"
     rescue => e
       puts e.message
@@ -261,10 +261,8 @@ module Jupyter
 
     def fetch_cloudwatch_statistics!
       cloudwatch = {}
-      st = @starts_at.iso8601
-      et = @ends_at.iso8601
-
       cloudwatch_wait_seconds = options.fetch(:cloudwatch_delay, 0)
+
       if cloudwatch_wait_seconds > 0
         puts "Wait #{cloudwatch_wait_seconds} seconds to collect data from cloudwatch"
         sleep(cloudwatch_wait_seconds)
@@ -282,8 +280,14 @@ module Jupyter
         namespaces.each do |namespace, subjects|
           metric = Aws::CloudWatch::Metric.new("AWS/#{namespace.upcase}", metric_name, client: client)
           subjects.each do |subject_name, dimensions|
+
+            shift_seconds = dimensions.delete('shift_seconds').to_i
+
             statistics = cloudwatch_statistics_mapping[metric_name][:statistics]
             calculations = cloudwatch_statistics_mapping[metric_name][:calculations]
+
+            st = (@starts_at + shift_seconds).iso8601
+            et = @ends_at.iso8601
 
             d = dimensions.map { |k,v| { name: k, value: v } }
             resp = metric.get_statistics({
