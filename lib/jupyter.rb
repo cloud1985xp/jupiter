@@ -11,6 +11,7 @@ module Jupyter
   DEFAULT_THREADS_COUNT = 1.freeze
   DEFAULT_THREADS_RAMPUP = 60.freeze
   DEFAULT_CONTROLLER_LOOPS = 1.freeze
+  DEFAULT_DURATION = 60000.freeze
 
   class << self
     def env=(val)
@@ -40,7 +41,7 @@ module Jupyter
             count: options.fetch(:threads, DEFAULT_THREADS_COUNT),
             rampup: options.fetch(:rampup, DEFAULT_THREADS_RAMPUP),
             loop: 1,
-            duration: 60000
+            duration: options.fetch(:rampup, DEFAULT_DURATION)
           },
           loop_controller: { count: options.fetch(:loop, DEFAULT_CONTROLLER_LOOPS) }
         )

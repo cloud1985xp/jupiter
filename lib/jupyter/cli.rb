@@ -178,6 +178,10 @@ module Jupyter
           options[:threads] = arg.to_i
         end
 
+        opts.on('--duration value', 'specify duration') do |arg|
+          options[:duration] = arg.to_i
+        end
+
         opts.on('--cloudwatch-delay value', 'delayed seconds before query cloudwatch') do |arg|
           options[:cloudwatch_delay] = arg.to_i
         end
