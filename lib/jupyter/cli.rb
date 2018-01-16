@@ -20,6 +20,8 @@ module Jupyter
       else
         str
       end
+
+      @sqs = ::Aws::SQS::Client.new(config.aws.credential) if config.aws.enabled_sqs?
     end
 
     def run
@@ -93,7 +95,7 @@ module Jupyter
       end
 
       # CloudWatch
-      report['cloudwatch'] = fetch_cloudwatch_statistics! if enabled_cloudwatch?
+      # report['cloudwatch'] = fetch_cloudwatch_statistics! if enabled_cloudwatch?
 
       # TODO: NewRelic RPM
 
@@ -141,11 +143,11 @@ module Jupyter
     def send_to_sqs(report)
       raise Jupyter::ConfigurationNotFoundError, :sqs unless config.aws.enabled_sqs?
 
-      sqs = ::Aws::SQS::Client.new(config.aws.credential)
+      # sqs = ::Aws::SQS::Client.new(config.aws.credential)
       sqs_config = config.aws.sqs
-      queue_url = sqs.get_queue_url(queue_name: sqs_config['queue_name']).queue_url
+      queue_url = @sqs.get_queue_url(queue_name: sqs_config['queue_name']).queue_url
 
-      send_message_result = sqs.send_message({
+      send_message_result = @sqs.send_message({
         queue_url: queue_url,
         message_body: report.to_json
       })
