@@ -1,4 +1,5 @@
 require 'optparse'
+require 'pp'
 
 module Jupyter
   class CLI
@@ -28,6 +29,9 @@ module Jupyter
       prepare!
 
       log("Running with threads: #{Jupyter.settings.threads}, loop_controller: #{Jupyter.settings.loop_controller}")
+
+      Signal.trap("TERM") { shutdown }
+      Signal.trap("INT") { shutdown }
       execute!
 
       @ends_at = Time.zone.now
@@ -41,6 +45,11 @@ module Jupyter
     end
 
     private
+
+    def shutdown
+      puts "Shutdown.. trying to generate report"
+      generate_report!
+    end
 
     def generate_report!
       # TODO: Wrap with Object
@@ -59,6 +68,8 @@ module Jupyter
       unless debug?
         logs = `tail -n 10 #{log_file}`.split("\n")
         log = logs.reverse.detect { |str| str["summary ="] }
+        raise Jupyter::LogParseError, :log if log.nil?        
+
         stats = log.scan(/(Avg|Min|Max): +([\d\-]+)/).each { |k,v| report[k.downcase] =  v.to_f }
         summary = log.match(/summary = +(\d+) in +([\d\.]+s|[\d\:]+) = +([\d\.]+)\/s/)
         error = log.match(/(Err): +(\d+) \(([\d\.]+)%\)/)
@@ -94,7 +105,6 @@ module Jupyter
       when 'table'
         print_table(report)
       else
-        require 'pp'
         PP.pp(report)
       end
     end
