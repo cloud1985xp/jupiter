@@ -41,7 +41,7 @@ module Jupyter
             count: options.fetch(:threads, DEFAULT_THREADS_COUNT),
             rampup: options.fetch(:rampup, DEFAULT_THREADS_RAMPUP),
             loop: 1,
-            duration: options.fetch(:rampup, DEFAULT_DURATION)
+            duration: options.fetch(:duration, DEFAULT_DURATION)
           },
           loop_controller: { count: options.fetch(:loop, DEFAULT_CONTROLLER_LOOPS) }
         )
