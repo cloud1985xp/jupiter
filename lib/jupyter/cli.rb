@@ -50,6 +50,7 @@ module Jupyter
 
     def shutdown
       puts "Shutdown.. trying to generate report"
+      options.delete(:output)
       generate_report!
     end
 
